@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 
 const StarryBackground: React.FC = () => {
@@ -27,23 +28,26 @@ const StarryBackground: React.FC = () => {
     const stars: Star[] = [];
     const numStars = 400;
     
+    // Electric Blue and Hot Orange Colors
+    const STAR_COLORS = [
+        '0, 240, 255', // Electric Blue (Cyan-ish)
+        '255, 100, 0'  // Hot Orange
+    ];
 
     class Star {
       angle: number;
       radius: number;
       speed: number;
       size: number;
-      color: string;
+      baseRgb: string;
 
       constructor() {
         this.angle = Math.random() * Math.PI * 2;
         this.radius = Math.random() * (Math.max(width, height) / 2); // Random distance from center
         this.speed = Math.random() * 0.5 + 0.2; // Speed of moving outward
         this.size = Math.random() * 2;
-        // Check for dark mode preference to set star color, or default to a mix
-        const isDark = document.documentElement.classList.contains('dark');
-        const baseColor = isDark ? '255, 255, 255' : '142, 68, 173'; // White in dark mode, Purple in light
-        this.color = `rgba(${baseColor}, ${Math.random()})`;
+        // Randomly assign one of the two colors
+        this.baseRgb = STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)];
       }
 
       update() {
@@ -59,6 +63,8 @@ const StarryBackground: React.FC = () => {
           this.radius = Math.random() * 10;
           this.angle = Math.random() * Math.PI * 2;
           this.speed = Math.random() * 0.5 + 0.2;
+          // Re-assign color on reset for variety
+          this.baseRgb = STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)];
         }
       }
 
@@ -76,11 +82,8 @@ const StarryBackground: React.FC = () => {
         ctx!.beginPath();
         ctx!.arc(x, y, Math.max(0.1, size), 0, Math.PI * 2);
         
-        // Update color check inside draw loop for theme switching response
-        const isDark = document.documentElement.classList.contains('dark');
-        const rgb = isDark ? '255, 255, 255' : '142, 68, 173';
-        
-        ctx!.fillStyle = `rgba(${rgb}, ${opacity})`;
+        // Use the star's specific base color
+        ctx!.fillStyle = `rgba(${this.baseRgb}, ${opacity})`;
         ctx!.fill();
       }
     }
@@ -93,10 +96,13 @@ const StarryBackground: React.FC = () => {
     // Animation Loop
     let animationFrameId: number;
     const animate = () => {
-      // Trail effect
-      ctx.fillStyle = document.documentElement.classList.contains('dark') 
+      // Trail effect background color (dependant on theme)
+      // We keep the trail effect subtle but allow the stars to pop
+      const isDark = document.documentElement.classList.contains('dark');
+      ctx.fillStyle = isDark 
         ? 'rgba(27, 27, 27, 0.2)' 
         : 'rgba(245, 245, 245, 0.2)';
+        
       ctx.fillRect(0, 0, width, height);
 
       stars.forEach(star => {

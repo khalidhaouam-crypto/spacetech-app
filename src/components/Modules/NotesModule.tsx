@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Note, Language } from '../../types';
-import { TRANSLATIONS } from '../../constants';
+import { TRANSLATIONS } from '../../translations';
 
 const COLORS = [
   { bg: 'bg-yellow-200', text: 'text-gray-800', hex: '#fef08a' },

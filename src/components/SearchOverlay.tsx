@@ -1,7 +1,7 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
-import { LINKS_DATA, TRANSLATIONS } from '../constants';
+import { LINKS_DATA } from '../constants';
+import { TRANSLATIONS } from '../translations';
 import { SearchResult, Language } from '../types';
 
 interface SearchOverlayProps {
@@ -47,34 +47,51 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({ onNavigate, onOpenDoc, la
             for (const cycle in cycles) {
                 const levels = cycles[cycle];
                 for (const level in levels) {
-                    const subjects = levels[level];
-                    for (const subject in subjects) {
-                        const content = subjects[subject];
-                        
-                        // Check Lessons
-                        if (content['دروس']) {
-                            if (Array.isArray(content['دروس'])) {
-                                content['دروس'].forEach((l: any) => {
-                                    if (l.title.toLowerCase().includes(term)) {
-                                        found.push({ type: 'درس', title: l.title, subject, educationType: eduType, cycle, level, url: l.url || '', context: `مادة: ${subject}` });
-                                    }
-                                });
-                            }
+                    const levelData = levels[level];
+                    
+                    if (eduType === 'الثانوي الإعدادي') {
+                        // Middle School: [level][subject]
+                        for (const subject in levelData) {
+                             const content = levelData[subject];
+                             searchInContent(content, subject, eduType, cycle, level, '', found, term);
                         }
-                        
-                        // Check Videos
-                         if (content['فيديوهات']) {
-                            content['فيديوهات'].forEach((v: any) => {
-                                 if (v.title.toLowerCase().includes(term)) {
-                                     found.push({ type: 'فيديو', title: v.title, subject, educationType: eduType, cycle, level, url: `https://www.youtube.com/watch?v=${v.id}`, context: `مادة: ${subject}` });
-                                 }
-                            });
+                    } else {
+                         // High School: [level][branch][subject]
+                         for (const branch in levelData) {
+                             const branchSubjects = levelData[branch];
+                             for (const subject in branchSubjects) {
+                                  const content = branchSubjects[subject];
+                                  searchInContent(content, subject, eduType, cycle, level, branch, found, term);
+                             }
                          }
                     }
                 }
             }
         }
     };
+
+    const searchInContent = (content: any, subject: string, eduType: string, cycle: string, level: string, branch: string, found: SearchResult[], term: string) => {
+        // Check Lessons
+        if (content['دروس']) {
+            if (Array.isArray(content['دروس'])) {
+                content['دروس'].forEach((l: any) => {
+                    if (l.title.toLowerCase().includes(term)) {
+                        found.push({ type: 'درس', title: l.title, subject, educationType: eduType, cycle, level, url: l.url || '', context: `${branch ? branch + ' - ' : ''}مادة: ${subject}` });
+                    }
+                });
+            }
+        }
+        
+        // Check Videos
+         if (content['فيديوهات']) {
+            content['فيديوهات'].forEach((v: any) => {
+                 if (v.title.toLowerCase().includes(term)) {
+                     found.push({ type: 'فيديو', title: v.title, subject, educationType: eduType, cycle, level, url: `https://www.youtube.com/watch?v=${v.id}`, context: `${branch ? branch + ' - ' : ''}مادة: ${subject}` });
+                 }
+            });
+         }
+    };
+
     traverse();
     setResults(found);
 

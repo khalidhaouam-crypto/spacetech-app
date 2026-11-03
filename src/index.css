@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "El Messiri", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #8e44ad;
+  --color-accent: #9b59b6;
+  --color-danger: #e74c3c;
+  --color-darkbg: #1b1b1b;
+
+  --animate-fade-in: fadeIn 0.9s forwards;
+  --animate-slide-down: slideDown 0.3s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-[#f5f5f5] text-[#222] transition-colors duration-300 dark:bg-darkbg dark:text-[#e0e0e0] overflow-x-hidden pt-[60px];
+    font-family: var(--font-sans);
+  }
+}
+
+/* Custom scrollbar for better aesthetics */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #8e44ad;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #732d91;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Grid pattern for Mind Map */
+.bg-grid-pattern {
+  background-image: radial-gradient(circle, #e0e0e0 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.dark .bg-grid-pattern {
+  background-image: radial-gradient(circle, #444 1px, transparent 1px);
+}

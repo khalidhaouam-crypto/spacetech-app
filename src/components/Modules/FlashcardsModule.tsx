@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Flashcard, MasteryLevel, Language } from '../../types';
-import { SUBJECTS_DATA, TRANSLATIONS, DATA_TRANSLATIONS } from '../../constants';
+import { SUBJECTS_DATA } from '../../constants';
+import { TRANSLATIONS, DATA_TRANSLATIONS } from '../../translations';
 
 // Get a flat list of subjects from constants for the dropdown
 const ALL_SUBJECTS = Array.from(new Set(

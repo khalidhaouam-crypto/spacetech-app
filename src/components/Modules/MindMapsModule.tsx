@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Language } from '../../types';
-import { TRANSLATIONS, DATA_TRANSLATIONS } from '../../constants';
+import { TRANSLATIONS, DATA_TRANSLATIONS } from '../../translations';
 
 // أنواع البيانات
 type ViewState = 'SUBJECTS' | 'LESSONS' | 'MAP';
@@ -17,33 +17,60 @@ interface MindMapData {
   branches: MindMapNode[];
 }
 
-// بيانات المواد والدروس (الثالثة إعدادي - جميع المواد)
+// بيانات المواد (تم حذف الرياضيات والفيزياء)
 const THIRD_YEAR_SUBJECTS = [
-  { id: 'islamic', name: 'التربية الإسلامية', icon: 'fas fa-mosque', color: '#2ecc71' },
-  { id: 'history', name: 'الاجتماعيات', icon: 'fas fa-globe-africa', color: '#e67e22' },
-  { id: 'arabic', name: 'اللغة العربية', icon: 'fas fa-pen-nib', color: '#3498db' },
-  { id: 'french', name: 'اللغة الفرنسية', icon: 'fas fa-book', color: '#9b59b6' },
-  { id: 'math', name: 'الرياضيات', icon: 'fas fa-square-root-alt', color: '#e74c3c' },
-  { id: 'math_fr', name: 'Mathématiques (Fr)', icon: 'fas fa-calculator', color: '#c0392b' },
-  { id: 'pc', name: 'الفيزياء والكيمياء', icon: 'fas fa-flask', color: '#f1c40f' },
-  { id: 'pc_fr', name: 'Physique et Chimie (Fr)', icon: 'fas fa-atom', color: '#f39c12' },
   { id: 'svt', name: 'علوم الحياة والأرض', icon: 'fas fa-dna', color: '#1abc9c' },
+  { id: 'islamic', name: 'التربية الإسلامية', icon: 'fas fa-mosque', color: '#2ecc71' },
+  { id: 'arabic', name: 'اللغة العربية', icon: 'fas fa-pen-nib', color: '#3498db' },
+  { id: 'history', name: 'الاجتماعيات', icon: 'fas fa-globe-africa', color: '#e67e22' },
+  { id: 'french', name: 'اللغة الفرنسية', icon: 'fas fa-book', color: '#9b59b6' },
   { id: 'svt_fr', name: 'Sciences de la vie et de la Terre (SVT Fr)', icon: 'fas fa-microscope', color: '#16a085' },
 ];
 
-// بيانات الدروس والخطاطات (الدورة الأولى كاملة)
+// بيانات الدروس
 const LESSONS_DATA: { [subjectId: string]: string[] } = {
+  'svt': [
+    'التربية الغذائية',
+    'الهضم والامتصاص',
+    'التنفس عند الإنسان',
+    'الدم والدوران الدموي',
+    'الإبراز البولي',
+    'الجهاز العصبي',
+    'الجهاز العضلي'
+  ],
   'islamic': [
-    'سورة الحشر (الشطر 1-2-3)',
+    'سورة الحشر',
     'أسماء الله الحسنى',
-    'التدين في حياة الفرد والمجتمع',
-    'الهجرة النبوية: المعاني والعبر',
-    'بناء الدولة: المسجد والوثيقة',
+    'أهمية التدين في حياة الفرد',
+    'الهجرة النبوية',
+    'المسجد نواة المجتمع',
     'الزكاة: أحكامها ومقاصدها',
-    'حق الله: التقوى',
+    'العبادة غاية الخلق',
+    'حق الله: تقوى الله',
     'حق النفس: التخطيط والتنظيم',
     'الهجرة المتجددة',
-    'الإيثار والتضحية'
+    'الإيثار والتضحية',
+    'سورة الحديد',
+    'الإسلام عقيدة وشريعة',
+    'الرسول (ص) نموذج الكمال',
+    'إمارة المؤمنين',
+    'التعارف والتعايش',
+    'القرآن الكريم منهاج حياة'
+  ],
+  'arabic': [
+      'اسم الفاعل وصيغ المبالغة', 
+      'اسم المفعول', 
+      'أسماء الزمان والمكان', 
+      'اسم الآلة', 
+      'النسبة', 
+      'المعاجم',
+      'الإعلال والإبدال',
+      'التصغير',
+      'أسلوب التعجب',
+      'أسلوب المدح والذم',
+      'أسلوب النداء',
+      'أسلوب الاختصاص',
+      'أسلوب الاستفهام'
   ],
   'history': [
     'تاريخ: ازدهار الرأسمالية الأوربية',
@@ -52,229 +79,344 @@ const LESSONS_DATA: { [subjectId: string]: string[] } = {
     'تاريخ: الحرب العالمية الأولى',
     'تاريخ: انهيار الإمبراطورية العثمانية',
     'تاريخ: أزمة 1929',
-    'جغرافيا: المغرب العربي (الوحدة والتنوع)',
-    'جغرافيا: المغرب العربي (التكامل والتحديات)',
-    'جغرافيا: اتحاد المغرب العربي (خيار استراتيجي)',
-    'جغرافيا: الاتحاد الأوربي (إمكانيات ومكانة)',
-    'جغرافيا: الاتحاد الأوربي (المعيقات)',
+    'تاريخ: الحرب العالمية الثانية',
+    'تاريخ: القضية الفلسطينية',
+    'جغرافيا: المغرب العربي (عناصر الوحدة)',
+    'جغرافيا: المغرب العربي (التكامل)',
+    'جغرافيا: اتحاد المغرب العربي',
+    'جغرافيا: الاتحاد الأوربي (إمكانيات)',
+    'جغرافيا: الاتحاد الأوربي (مكانة)',
+    'جغرافيا: الولايات المتحدة الأمريكية',
+    'جغرافيا: اليابان قوة تكنولوجية',
+    'جغرافيا: روسيا ورهانات التحول',
+    'جغرافيا: مصر نموذج تنموي',
     'مواطنة: المشاركة حق وواجب',
     'مواطنة: معالجة مشكل اجتماعي',
     'مواطنة: مسؤولية الدولة والمجتمع',
-    'مواطنة: تخليق الحياة العامة (الرشوة)'
+    'مواطنة: تخليق الحياة العامة',
+    'مواطنة: الحفاظ على التراث',
+    'مواطنة: نحن والعالم',
+    'مواطنة: الحفاظ على الموارد الطبيعية'
   ],
-  'svt': [
-    'التربية الغذائية',
-    'الهضم والامتصاص',
-    'التنفس عند الإنسان',
-    'الدم والدوران الدموي',
-    'الإبراز البولي'
+  'french': [
+      'La nouvelle réaliste', 
+      'Le schéma narratif', 
+      'Les personnages',
+      'Le temps du récit',
+      'La description',
+      'Le dialogue dans le récit',
+      'La lettre administrative',
+      'La lettre personnelle',
+      'L\'invitation',
+      'L\'autorisation',
+      'La coordination',
+      'La cause et la conséquence',
+      'Le but et la concession',
+      'L\'hypothèse'
   ],
   'svt_fr': [
     'L\'éducation nutritionnelle',
     'La digestion et l\'absorption',
-    'La respiration chez l\'homme',
-    'Le sang et la circulation',
-    'L\'excrétion urinaire'
-  ],
-  'arabic': [
-      'اسم الفاعل وصيغ المبالغة', 
-      'اسم المفعول', 
-      'أسماء الزمان والمكان', 
-      'اسم الآلة', 
-      'النسبة', 
-      'الإعلال والإبدال',
-      'المعاجم'
-  ],
-  'french': [
-      'La structure de la lettre', 
-      'La demande d\'autorisation', 
-      'La lettre d\'invitation', 
-      'La lettre de remerciement'
-  ],
-  'math': [
-      'النشر والتعميل والمتطابقات الهامة', 
-      'القوى', 
-      'الجذور المربعة', 
-      'مبرهنة طاليس', 
-      'الترتيب والعمليات', 
-      'المثلث القائم والحساب المثلثي', 
-      'الزوايا المركزية والمحيطية', 
-      'المثلثات المتقايسة والمتشابهة'
-  ],
-  'math_fr': [
-      'Développement et Factorisation', 
-      'Les Puissances', 
-      'Les Racines Carrées', 
-      'Théorème de Thalès', 
-      'Ordre et Opérations', 
-      'Théorème de Pythagore', 
-      'Trigonométrie', 
-      'Angles inscrits et au centre', 
-      'Triangles isométriques et semblables'
-  ],
-  'pc': [
-      'أمثلة لبعض المواد المستعملة في حياتنا', 
-      'المواد والكهرباء (الذرات والأيونات)', 
-      'أكسدة الفلزات في الهواء', 
-      'تفاعل المواد العضوية مع الهواء', 
-      'المحاليل الحمضية والقاعدية', 
-      'تفاعل الفلزات مع المحاليل', 
-      'روائز الكشف عن الأيونات', 
-      'خطورة بعض المواد'
-  ],
-  'pc_fr': [
-      'Quelques matériaux au quotidien', 
-      'Atomes et Ions', 
-      'Oxydation des métaux', 
-      'Combustion des matériaux organiques', 
-      'Solutions acides et basiques', 
-      'Action des solutions sur les métaux', 
-      'Tests de reconnaissance des ions', 
-      'Dangers de quelques matériaux'
+    'La respiration chez l\'Homme',
+    'Le sang et la circulation sanguine',
+    'L\'excrétion urinaire',
+    'Le système nerveux',
+    'Le système musculaire'
   ]
 };
 
-// دالة لإنشاء خطاطة افتراضية ذكية
+// دالة توليد الخطاطة الذهنية
 const getMindMap = (subjectId: string, lessonTitle: string): MindMapData => {
   
+  // ================= SVT (Arabic) =================
+  if (subjectId === 'svt') {
+    if (lessonTitle.includes('الغذائية')) return {
+      title: lessonTitle, root: 'التربية الغذائية', branches: [
+        { name: 'الأغذية', sub: ['بسيطة (سكريات، دهنيات..)', 'مركبة (خبز، حليب..)', 'الوظيفة: طاقية، بانية، واقية'] },
+        { name: 'الكواشف', sub: ['ماء اليودي (النشا)', 'نترات الفضة (الكلورور)', 'فهلينغ (السكريات)', 'حمض النيتريك (البروتيدات)'] },
+        { name: 'الفاقت الغذائية', sub: ['الكساح (نقص الكالسيوم/فيتامين D)', 'التدرق (نقص اليود)', 'فقر الدم (نقص الحديد)', 'الاسقربوط (نقص فيتامين C)'] },
+        { name: 'الكلتة الغذائية', sub: ['تغطية حاجيات الجسم', 'عوامل التغير: السن، الجنس، النشاط', 'شروطها: التنوع والتوازن'] }
+      ]};
+    if (lessonTitle.includes('الهضم')) return {
+      title: lessonTitle, root: 'الهضم والامتصاص', branches: [
+        { name: 'الجهاز الهضمي', sub: ['الأنبوب الهضمي (فم، مريء، معدة، أمعاء)', 'الغدد الملحقة (لعابية، كبد، بنكرياس)'] },
+        { name: 'الهضم', sub: ['آلي: الأسنان، التقلصات', 'كيميائي: الإنزيمات (نشواز، بيبسين...)'] },
+        { name: 'نواتج الهضم', sub: ['مواد القيت (أحماض أمينية، غليكوز، أحماض دهنية)', 'الماء والأملاح والفيتامينات', 'الألياف (لا تهضم)'] },
+        { name: 'الامتصاص', sub: ['المعي الدقيق', 'الخملات المعوية (مساحة كبيرة)', 'الطريق الدموي واللمفاوي'] }
+      ]};
+    if (lessonTitle.includes('التنفس')) return {
+      title: lessonTitle, root: 'التنفس', branches: [
+        { name: 'التبادلات الغازية', sub: ['في الرئة (الأسناخ الرئوية)', 'في الأعضاء (الأنسجة)'] },
+        { name: 'آلية التبادل', sub: ['انتشار الغازات', 'اختلاف الضغط الجزئي'] },
+        { name: 'التنفس الخلوي', sub: ['أكسدة مواد القيت (الغليكوز)', 'إنتاج الطاقة (ATP)', 'طرح CO2 والفضلات'] },
+        { name: 'صحة الجهاز', sub: ['أخطار التدخين', 'تلوث الهواء', 'أمراض الجهاز التنفسي'] }
+      ]};
+    if (lessonTitle.includes('الدم')) return {
+      title: lessonTitle, root: 'الدم والدوران', branches: [
+        { name: 'مكونات الدم', sub: ['البلازما (نقل)', 'الكريات الحمراء (هيموغلوبين)', 'الكريات البيضاء (مناعة)', 'الصفائح (تخثر)'] },
+        { name: 'القلب', sub: ['عضلة مجوفة', '4 تجاويف (أذينتان، بطينان)', 'انقباض وانبساط'] },
+        { name: 'الأوعية', sub: ['شرايين (سميكة، ضغط عال)', 'أوردة (رقيقة، صمامات)', 'شعيرات (دقيقة، تبادل)'] },
+        { name: 'الدورة الدموية', sub: ['الدورة الرئوية (تنقية الدم)', 'الدورة العامة (تزويد الأعضاء)'] }
+      ]};
+    if (lessonTitle.includes('البولي')) return {
+      title: lessonTitle, root: 'الإبراز البولي', branches: [
+        { name: 'الجهاز البولي', sub: ['الكليتين (تصفية)', 'الحالبين (نقل)', 'المثانة (تخزين)', 'الإحليل (طرح)'] },
+        { name: 'مكونات البول', sub: ['ماء وأملاح زائدة', 'فضلات سامة (بولة، حمض بولي)', 'غياب الزلال والغليكوز (عند السليم)'] },
+        { name: 'تشكل البول', sub: ['في النفرون', 'الترشيح الكبيبي', 'إعادة الامتصاص', 'الإفراز الأنبوبي'] },
+        { name: 'دور الكلية', sub: ['تخليص الدم من السموم', 'ثبات الوسط الداخلي (التوازن المائي المعدني)'] }
+      ]};
+    if (lessonTitle.includes('العصبي')) return {
+      title: lessonTitle, root: 'الجهاز العصبي', branches: [
+        { name: 'المكونات', sub: ['الدماغ والنخاع الشوكي (مركزية)', 'الأعصاب (محيطية)', 'الخلية العصبية (العصبون)'] },
+        { name: 'الحساسية الشعورية', sub: ['مهيج، مستقبل حسي', 'موصل حسي (عصب)', 'مركز عصبي (باحات)'] },
+        { name: 'التحركية الإرادية', sub: ['باحة الحركة', 'نقل السيالة النابذة', 'العضلة (مستجيب)'] },
+        { name: 'التحركية اللاإرادية', sub: ['انعكاس شوكي', 'النخاع الشوكي (مركز)', 'قوس الانعكاس'] }
+      ]};
+    if (lessonTitle.includes('العضلي')) return {
+      title: lessonTitle, root: 'الجهاز العضلي', branches: [
+        { name: 'أنواع العضلات', sub: ['هيكلية (إرادية)', 'ملساء (لا إرادية)', 'قلبية'] },
+        { name: 'خصائص العضلة', sub: ['الاهتياجية', 'القلوصية', 'المرونة (محدودة)'] },
+        { name: 'بنية العضلة', sub: ['حزم ألياف', 'ليف عضلي (خلية)', 'خويطات (أكتين وميوزين)'] },
+        { name: 'الوقاية', sub: ['تجنب التعب', 'تغذية متوازنة', 'الإحماء الرياضي'] }
+      ]};
+  }
+
   // ================= التربية الإسلامية =================
   if (subjectId === 'islamic') {
+    if (lessonTitle.includes('الحشر')) return {
+      title: lessonTitle, root: 'سورة الحشر', branches: [
+        { name: 'التعريف', sub: ['مدنية', '24 آية', 'نزلت في بني النضير'] },
+        { name: 'أسباب النزول', sub: ['غدر يهود بني النضير', 'محاولة قتل الرسول (ص)'] },
+        { name: 'المضامين', sub: ['عظمة الله', 'جلاء اليهود', 'تشريع الفيء', 'أخلاق المؤمنين'] },
+        { name: 'القيم', sub: ['التقوى', 'الإيثار', 'الاعتبار', 'تعظيم الله'] }
+      ]};
+    if (lessonTitle.includes('أسماء الله')) return {
+      title: lessonTitle, root: 'أسماء الله الحسنى', branches: [
+        { name: 'المفهوم', sub: ['أسماء سمى بها الله نفسه', 'دالة على كماله وجلاله'] },
+        { name: 'الغاية', sub: ['معرفة الله', 'دعوته بها', 'التعبد بمقتضاها'] },
+        { name: 'أمثلة', sub: ['الرحيم (الرحمة)', 'العليم (المراقبة)', 'الكريم (الجود)'] },
+        { name: 'الأثر', sub: ['السكينة', 'الخشوع', 'استقامة السلوك'] }
+      ]};
+    if (lessonTitle.includes('الهجرة')) return {
+      title: lessonTitle, root: 'الهجرة النبوية', branches: [
+        { name: 'الدوافع', sub: ['إيذاء قريش', 'البحث عن بيئة آمنة', 'نشر الدعوة'] },
+        { name: 'التخطيط', sub: ['السرية', 'الصاحب (أبو بكر)', 'المبيت (علي)', 'الدليل'] },
+        { name: 'النتائج', sub: ['تأسيس الدولة', 'بناء المسجد', 'المؤاخاة', 'الوثيقة'] },
+        { name: 'العبر', sub: ['الثقة بالله', 'الأخذ بالأسباب', 'التضحية'] }
+      ]};
+    if (lessonTitle.includes('الزكاة')) return {
+      title: lessonTitle, root: 'الزكاة', branches: [
+        { name: 'التعريف', sub: ['لغة: النماء', 'شرعاً: حق معلوم في مال مخصوص'] },
+        { name: 'الحكم', sub: ['ركن ثالث', 'فرض عين', 'يكفر جاحدها'] },
+        { name: 'الشروط', sub: ['الإسلام', 'ملك النصاب', 'مرور الحول', 'خلوه من الدين'] },
+        { name: 'المقاصد', sub: ['تطهير النفس', 'التكافل', 'الحد من الفقر', 'نماء المال'] }
+      ]};
+    if (lessonTitle.includes('الحديد')) return {
+      title: lessonTitle, root: 'سورة الحديد', branches: [
+        { name: 'التعريف', sub: ['مدنية', 'تعنى بالتشريع والعقيدة'] },
+        { name: 'المواضيع', sub: ['التسبيح', 'الإنفاق', 'حقيقة الدنيا', 'القدر'] },
+        { name: 'الإيمان', sub: ['الإيمان بالله ورسوله', 'الإنفاق دليل صدق الإيمان'] },
+        { name: 'القلوب', sub: ['الخشوع لذكر الله', 'قسوة القلوب وطول الأمد'] }
+      ]};
+    if (lessonTitle.includes('إمارة المؤمنين')) return {
+      title: lessonTitle, root: 'إمارة المؤمنين', branches: [
+        { name: 'المفهوم', sub: ['قيادة عظمى', 'حراسة الدين', 'سياسة الدنيا'] },
+        { name: 'الأسس', sub: ['البيعة الشرعية', 'أهل الحل والعقد', 'السمع والطاعة'] },
+        { name: 'الوظائف', sub: ['حماية الملة', 'إقامة العدل', 'حفظ الأمن', 'الوحدة'] },
+        { name: 'في المغرب', sub: ['خصوصية تاريخية', 'ضمان الاستقرار الروحي والسياسي'] }
+      ]};
     return {
-      title: lessonTitle,
-      root: lessonTitle.split(':')[0], // أخذ الجزء الأول من العنوان
+      title: lessonTitle, root: lessonTitle.split(':')[0], 
       branches: [
-        { name: 'المفهوم / التعريف', sub: ['التعريف اللغوي', 'التعريف الشرعي', 'الأركان والشروط'] },
-        { name: 'الأهمية والمقاصد', sub: ['أثره على الفرد', 'أثره على المجتمع', 'الغاية الدينية'] },
-        { name: 'القيم المستفادة', sub: ['التقوى', 'التوكل', 'الإخلاص'] },
-        { name: 'أدلة شرعية', sub: ['من القرآن الكريم', 'من السنة النبوية'] }
+        { name: 'المفهوم', sub: ['التعريف اللغوي', 'التعريف الشرعي'] },
+        { name: 'الأركان/العناصر', sub: ['عنصر 1', 'عنصر 2', 'عنصر 3'] },
+        { name: 'الأدلة', sub: ['من القرآن', 'من السنة'] },
+        { name: 'الآثار/القيم', sub: ['على الفرد', 'على المجتمع'] }
+      ]
+    };
+  }
+
+  // ================= اللغة العربية =================
+  if (subjectId === 'arabic') {
+    if (lessonTitle.includes('اسم الفاعل')) return {
+      title: lessonTitle, root: 'اسم الفاعل', branches: [
+        { name: 'التعريف', sub: ['اسم مشتق يدل على من قام بالفعل'] },
+        { name: 'الصياغة', sub: ['من الثلاثي: فاعِل', 'من غير الثلاثي: ميم مضمومة وكسر ما قبل الآخر'] },
+        { name: 'صيغ المبالغة', sub: ['للكثرة والمبالغة', 'أوزان: فَعّال، مِفْعال، فَعُول، فَعِيل، فَعِل'] },
+        { name: 'العمل', sub: ['يعمل عمل فعله المبني للمعلوم', 'بشروط إذا كان نكرة (مسبوق بنفي/استفهام...)'] }
+      ]};
+    if (lessonTitle.includes('اسم المفعول')) return {
+      title: lessonTitle, root: 'اسم المفعول', branches: [
+        { name: 'التعريف', sub: ['اسم مشتق يدل على من وقع عليه الفعل'] },
+        { name: 'الصياغة', sub: ['من الثلاثي: مَفْعُول', 'من غير الثلاثي: ميم مضمومة وفتح ما قبل الآخر'] },
+        { name: 'العمل', sub: ['يعمل عمل فعله المبني للمجهول', 'يرفع نائب الفاعل'] }
+      ]};
+    if (lessonTitle.includes('الزمان والمكان')) return {
+      title: lessonTitle, root: 'اسما الزمان والمكان', branches: [
+        { name: 'التعريف', sub: ['يدلان على زمان أو مكان وقوع الفعل'] },
+        { name: 'من الثلاثي', sub: ['مَفْعَل (مضارعه مفتوح/مضموم العين)', 'مَفْعِل (مضارعه مكسور العين/مثال)'] },
+        { name: 'من غير الثلاثي', sub: ['على وزن اسم المفعول', 'ميم مضمومة وفتح ما قبل الآخر'] }
+      ]};
+    if (lessonTitle.includes('الآلة')) return {
+      title: lessonTitle, root: 'اسم الآلة', branches: [
+        { name: 'التعريف', sub: ['اسم يدل على الأداة التي ينجز بها الفعل'] },
+        { name: 'مشتق قياسي', sub: ['مِفْعَال (مفتاح)', 'مِفْعَل (مبرد)', 'مِفْعَلَة (مكنسة)', 'فَعَّالَة (ثلاجة)'] },
+        { name: 'جامد سماعي', sub: ['لا وزن له', 'مثل: سكين، سيف، فاس، قلم'] }
+      ]};
+    if (lessonTitle.includes('النسبة')) return {
+      title: lessonTitle, root: 'النسبة', branches: [
+        { name: 'الطريقة', sub: ['إضافة ياء مشددة وكسر ما قبلها', 'مغرب -> مغربي'] },
+        { name: 'المختوم بالتاء', sub: ['تحذف التاء', 'فاطمة -> فاطمي'] },
+        { name: 'المقصور', sub: ['تقلب الألف واواً (غالباً)', 'عصا -> عصوي'] },
+        { name: 'المنقوص', sub: ['تقلب الياء واواً (غالباً)', 'قاضي -> قاضوي'] }
+      ]};
+    if (lessonTitle.includes('التعجب')) return {
+      title: lessonTitle, root: 'أسلوب التعجب', branches: [
+        { name: 'الصيغ القياسية', sub: ['ما أَفْعَلَ (ما أجملَ السماءَ)', 'أَفْعِلْ بِـ (أجملْ بالسماءِ)'] },
+        { name: 'شروط الصياغة', sub: ['ثلاثي، تام، متصرف', 'مثبت، مبني للمعلوم', 'قابل للتفاضل'] },
+        { name: 'الصياغة غير المباشرة', sub: ['المصدر المؤول/الصريح + مساعد', 'ما أشدَّ زرقةَ السماء'] }
+      ]};
+    return {
+      title: lessonTitle, root: lessonTitle, branches: [
+        { name: 'التعريف', sub: ['المعنى اللغوي', 'الوظيفة النحوية'] },
+        { name: 'القواعد', sub: ['طرق الصياغة', 'الأوزان والشروط'] },
+        { name: 'الإعراب', sub: ['حالات الرفع/النصب/الجر', 'أمثلة تطبيقية'] }
       ]
     };
   }
 
   // ================= الاجتماعيات =================
   if (subjectId === 'history') {
-    if (lessonTitle.includes('تاريخ')) {
-       return {
-        title: lessonTitle,
-        root: lessonTitle.replace('تاريخ: ', ''),
-        branches: [
-            { name: 'الإطار الزمني والمكاني', sub: ['القرن 19/20', 'أوروبا / العالم / المغرب'] },
-            { name: 'الأسباب والعوامل', sub: ['أسباب مباشرة', 'أسباب غير مباشرة', 'عوامل مساعدة'] },
-            { name: 'المظاهر والمراحل', sub: ['أهم الأحداث', 'التطورات', 'المراحل الكبرى'] },
-            { name: 'النتائج والانعكاسات', sub: ['سياسياً', 'اقتصادياً', 'اجتماعياً'] }
-        ]
-       };
-    }
-    if (lessonTitle.includes('جغرافيا')) {
-       return {
-        title: lessonTitle,
-        root: lessonTitle.replace('جغرافيا: ', ''),
-        branches: [
-            { name: 'المؤهلات الطبيعية', sub: ['الموقع', 'التضاريس', 'المناخ والثروات'] },
-            { name: 'المؤهلات البشرية', sub: ['عدد السكان', 'اليد العاملة', 'السوق الاستهلاكية'] },
-            { name: 'المكانة الاقتصادية', sub: ['الفلاحة', 'الصناعة', 'التجارة'] },
-            { name: 'المشاكل والتحديات', sub: ['الطبيعية', 'الاقتصادية', 'الديمغرافية'] }
-        ]
-       };
-    }
-    if (lessonTitle.includes('مواطنة')) {
-       return {
-        title: lessonTitle,
-        root: lessonTitle.replace('مواطنة: ', ''),
-        branches: [
-            { name: 'المفهوم والدلالة', sub: ['تعريف المصطلح', 'المرجعية القانونية'] },
-            { name: 'الحقوق والواجبات', sub: ['ما يضمنه القانون', 'ما يلتزم به المواطن'] },
-            { name: 'خطوات العمل', sub: ['التشخيص', 'الاقتراح', 'التنفيذ'] },
-            { name: 'دور المؤسسات', sub: ['الدولة', 'المجتمع المدني', 'المواطن'] }
-        ]
-       };
-    }
-  }
-
-  // ================= الرياضيات (Arabic & French) =================
-  if (subjectId === 'math' || subjectId === 'math_fr') {
-    const isFr = subjectId === 'math_fr';
+    if (lessonTitle.includes('الرأسمالية')) return {
+      title: lessonTitle, root: 'ازدهار الرأسمالية', branches: [
+        { name: 'المظاهر التقنية', sub: ['الثورة الصناعية', 'تطور المواصلات', 'شركات مجهولة الاسم'] },
+        { name: 'النتائج الاقتصادية', sub: ['التركيز الرأسمالي', 'تزايد الإنتاج', 'الحاجة للأسواق'] },
+        { name: 'النتائج الاجتماعية', sub: ['ظهور الطبقة العاملة (البروليتاريا)', 'ظهور البرجوازية', 'توسع المدن'] }
+      ]};
+    if (lessonTitle.includes('الإمبريالية')) return {
+      title: lessonTitle, root: 'الإمبريالية', branches: [
+        { name: 'الدوافع', sub: ['تصريف فائض الإنتاج', 'البحث عن مواد أولية', 'تصدير رؤوس الأموال'] },
+        { name: 'المبررات', sub: ['نشر الحضارة', 'حماية الأمن', 'التفوق العرقي'] },
+        { name: 'الوسائل', sub: ['بعثات تبشيرية', 'رحلات استكشافية', 'قوة عسكرية'] }
+      ]};
+    if (lessonTitle.includes('الحرب العالمية الأولى')) return {
+      title: lessonTitle, root: 'الحرب العالمية 1', branches: [
+        { name: 'الأسباب', sub: ['التنافس الإمبريالي', 'التحالفات', 'اغتيال ولي عهد النمسا'] },
+        { name: 'المراحل', sub: ['حرب الحركة', 'حرب الخنادق', 'دخول أمريكا'] },
+        { name: 'النتائج', sub: ['خسائر بشرية هائلة', 'تغير خريطة أوروبا', 'عصبة الأمم', 'انهيار الاقتصاد'] }
+      ]};
+    if (lessonTitle.includes('المغرب العربي')) return {
+      title: lessonTitle, root: 'المغرب العربي', branches: [
+        { name: 'عناصر الوحدة', sub: ['الدين واللغة', 'التاريخ المشترك', 'المجال الجغرافي'] },
+        { name: 'عناصر التنوع', sub: ['الموارد الطبيعية (نفط/فلاحة)', 'المؤهلات البشرية'] },
+        { name: 'أهمية التكتل', sub: ['مواجهة التحديات (العولمة)', 'تكامل اقتصادي', 'وزن سياسي'] }
+      ]};
+    if (lessonTitle.includes('الاتحاد الأوربي')) return {
+      title: lessonTitle, root: 'الاتحاد الأوربي', branches: [
+        { name: 'المراحل', sub: ['مجموعة الفحم والفولاذ', 'السوق المشتركة', 'ماستريخت (الاتحاد)'] },
+        { name: 'مظاهر القوة', sub: ['فلاحية (مراتب أولى)', 'صناعية (إيرباص، سيارات)', 'تجارية (عملة اليورو)'] },
+        { name: 'المعيقات', sub: ['الشيخوخة', 'تباين النمو', 'المنافسة الخارجية'] }
+      ]};
+    if (lessonTitle.includes('مواطنة')) return {
+      title: lessonTitle, root: 'التربية على المواطنة', branches: [
+        { name: 'المفهوم', sub: ['حقوق وواجبات', 'سلوك مدني', 'مسؤولية'] },
+        { name: 'الآليات', sub: ['القانون', 'المؤسسات', 'المجتمع المدني'] },
+        { name: 'خطوات المعالجة', sub: ['التشخيص', 'الحلول', 'التخطيط', 'التنفيذ'] }
+      ]};
     return {
-        title: lessonTitle,
-        root: lessonTitle,
-        branches: [
-            { name: isFr ? 'Définitions' : 'تعاريف ومفاهيم', sub: isFr ? ['Notion clé 1', 'Notion clé 2'] : ['مفهوم أساسي 1', 'مفهوم أساسي 2'] },
-            { name: isFr ? 'Règles & Propriétés' : 'قواعد وخاصيات', sub: isFr ? ['Règle 1', 'Propriété fondamentale', 'Théorème'] : ['قاعدة 1', 'خاصية أساسية', 'مبرهنة'] },
-            { name: isFr ? 'Exemples' : 'أمثلة تطبيقية', sub: isFr ? ['Cas simple', 'Cas particulier'] : ['مثال بسيط', 'حالة خاصة'] },
-            { name: isFr ? 'Techniques de calcul' : 'تقنيات الحساب', sub: isFr ? ['Méthode 1', 'Astuce'] : ['طريقة 1', 'تنبيه هام'] }
-        ]
-    };
-  }
-
-  // ================= الفيزياء والكيمياء (Arabic & French) =================
-  if (subjectId === 'pc' || subjectId === 'pc_fr') {
-    const isFr = subjectId === 'pc_fr';
-    return {
-        title: lessonTitle,
-        root: lessonTitle,
-        branches: [
-            { name: isFr ? 'Concepts clés' : 'مفاهيم أساسية', sub: isFr ? ['Définition', 'Symbole / Formule'] : ['التعريف', 'الرمز / الصيغة'] },
-            { name: isFr ? 'Expérience' : 'التجربة', sub: isFr ? ['Montage', 'Observation', 'Interprétation'] : ['العدة التجريبية', 'الملاحظة', 'التفسير'] },
-            { name: isFr ? 'Conclusion' : 'استنتاج', sub: isFr ? ['Loi physique', 'Réaction chimique'] : ['قانون فيزيائي', 'معادلة التفاعل'] },
-            { name: isFr ? 'Dangers & Précautions' : 'أخطار ووقاية', sub: isFr ? ['Risques', 'Sécurité'] : ['المخاطر', 'احتياطات السلامة'] }
-        ]
-    };
-  }
-
-  // ================= SVT (Arabic & French) =================
-  if (subjectId === 'svt' || subjectId === 'svt_fr') {
-    const isFr = subjectId === 'svt_fr';
-    return {
-        title: lessonTitle,
-        root: lessonTitle,
-        branches: [
-            { name: isFr ? 'Anatomie / Structure' : 'البنية والتشريح', sub: isFr ? ['Organes', 'Tissus', 'Cellules'] : ['الأعضاء', 'الأنسجة', 'الخلايا'] },
-            { name: isFr ? 'Fonctionnement' : 'الوظيفة', sub: isFr ? ['Rôle principal', 'Mécanisme'] : ['الدور الأساسي', 'الآلية'] },
-            { name: isFr ? 'Phénomènes' : 'الظواهر', sub: isFr ? ['Echanges', 'Réactions'] : ['التبادلات', 'التفاعلات'] },
-            { name: isFr ? 'Hygiène & Santé' : 'الوقاية والصحة', sub: isFr ? ['Maladies', 'Prévention'] : ['الأمراض', 'سبل الوقاية'] }
-        ]
-    };
-  }
-
-  // ================= الفرنسية =================
-  if (subjectId === 'french') {
-      // Specific logic for letters
-      if (lessonTitle.includes('lettre') || lessonTitle.includes('demande') || lessonTitle.includes('invitation')) {
-        return {
-            title: lessonTitle,
-            root: 'La Lettre Conventionnelle',
-            branches: [
-                { name: 'La Forme (Structure)', sub: ['Lieu et date', 'Coordonnées (Émetteur/Récepteur)', 'Objet', 'Signature'] },
-                { name: 'Formules d\'appel', sub: ['Monsieur le Directeur,', 'Monsieur le Président,'] },
-                { name: 'Le Corps du texte', sub: ['L\'intention (J\'ai l\'honneur...)', 'L\'argumentation', 'L\'attente'] },
-                { name: 'Formules de politesse', sub: ['Veuillez agréer...', 'Mes salutations distinguées'] }
-            ]
-        };
-      }
-      return {
-        title: lessonTitle,
-        root: lessonTitle,
-        branches: [
-            { name: 'Définition', sub: ['Concept clé', 'Usage'] },
-            { name: 'Caractéristiques', sub: ['Forme', 'Structure', 'Langue'] },
-            { name: 'Exemples', sub: ['Exemple 1', 'Exemple 2'] },
-            { name: 'Moyens linguistiques', sub: ['Lexique', 'Grammaire'] }
-        ]
-      };
-  }
-  
-  // ================= العربية =================
-  if (subjectId === 'arabic') {
-    return {
-      title: lessonTitle,
-      root: lessonTitle,
+      title: lessonTitle, root: lessonTitle.replace(/.*: /, ''), 
       branches: [
-        { name: 'التعريف', sub: ['لغة', 'اصطلاحاً'] },
-        { name: 'الشروط والأحكام', sub: ['شروط الصياغة', 'الحالات الإعرابية'] },
-        { name: 'الأنواع / الأوزان', sub: ['الأوزان القياسية', 'الأوزان السماعية'] },
-        { name: 'أمثلة ونماذج', sub: ['جمل مفيدة', 'إعراب نموذجي'] }
+        { name: 'السياق/التعريف', sub: ['الزمان والمكان', 'المفاهيم الأساسية'] },
+        { name: 'المظاهر/الخصائص', sub: ['التجليات', 'العناصر المكونة'] },
+        { name: 'العوامل/الأسباب', sub: ['مفسرة', 'مباشرة وغير مباشرة'] },
+        { name: 'النتائج/المشاكل', sub: ['انعكاسات', 'تحديات وحلول'] }
       ]
     };
+  }
+
+  // ================= French =================
+  if (subjectId === 'french') {
+     if (lessonTitle.includes('nouvelle')) return {
+        title: lessonTitle, root: 'La Nouvelle', branches: [
+            { name: 'Définition', sub: ['Récit court', 'Faits réels/vraisemblables', 'Peu de personnages'] },
+            { name: 'Structure', sub: ['Situation stable', 'Perturbation', 'Actions', 'Résolution', 'Situation finale'] },
+            { name: 'Chute', sub: ['Fin inattendue', 'Effet de surprise', 'Morale implicite'] }
+        ]
+     };
+     if (lessonTitle.includes('lettre')) return {
+        title: lessonTitle, root: 'La Correspondance', branches: [
+            { name: 'Administrative', sub: ['Conventionnelle', 'Formules de politesse', 'Expéditeur/Destinataire', 'Objet'] },
+            { name: 'Personnelle', sub: ['Amicale/Familiale', 'Langage courant/familier', 'Subjectivité'] },
+            { name: 'Types', sub: ['Demande d\'autorisation', 'Invitation', 'Remerciement', 'Réclamation'] }
+        ]
+     };
+     if (lessonTitle.includes('cause') || lessonTitle.includes('conséquence') || lessonTitle.includes('but')) return {
+        title: lessonTitle, root: 'Raisonnement', branches: [
+            { name: 'La Cause', sub: ['Parce que, car', 'Comme, Puisque', 'À cause de / Grâce à'] },
+            { name: 'La Conséquence', sub: ['Donc, alors', 'Si bien que', 'C\'est pourquoi'] },
+            { name: 'Le But', sub: ['Pour, afin de (+inf)', 'Pour que (+subj)', 'De peur que'] }
+        ]
+     };
+     if (lessonTitle.includes('hypothèse')) return {
+        title: lessonTitle, root: 'L\'Hypothèse', branches: [
+            { name: 'Si + Présent', sub: ['-> Futur simple', '(Réel / Possible)'] },
+            { name: 'Si + Imparfait', sub: ['-> Conditionnel Présent', '(Irréel du présent)'] },
+            { name: 'Si + Plus-que-parfait', sub: ['-> Conditionnel Passé', '(Irréel du passé)'] }
+        ]
+     };
+     return {
+        title: lessonTitle, root: lessonTitle, branches: [
+            { name: 'Définitions', sub: ['Notions clés', 'Vocabulaire'] },
+            { name: 'Règles', sub: ['Formation', 'Structure gramaticale'] },
+            { name: 'Emploi', sub: ['Quand l\'utiliser?', 'Contexte'] },
+            { name: 'Exemples', sub: ['Phrases types', 'Illustrations'] }
+        ]
+     };
+  }
+
+  // ================= SVT (French) =================
+  if (subjectId === 'svt_fr') {
+    if (lessonTitle.includes('nutritionnelle')) return {
+      title: lessonTitle, root: 'Éducation Nutritionnelle', branches: [
+        { name: 'Aliments', sub: ['Simples (Glucides...)', 'Composés', 'Rôles: Énergétique, Bâtisseur, Protecteur'] },
+        { name: 'Tests', sub: ['Eau iodée (Amidon)', 'Nitrate d\'argent (Chlorures)', 'Liqueur de Fehling (Sucres)'] },
+        { name: 'Carences', sub: ['Kwashiorkor (Protides)', 'Rachitisme (Vit D)', 'Anémie (Fer)'] },
+        { name: 'Ration', sub: ['Équilibrée', 'Suffisante', 'Variée'] }
+      ]};
+    if (lessonTitle.includes('digestion')) return {
+      title: lessonTitle, root: 'Digestion', branches: [
+        { name: 'Appareil', sub: ['Tube digestif', 'Glandes annexes'] },
+        { name: 'Action Mécanique', sub: ['Mastication', 'Brassage'] },
+        { name: 'Action Chimique', sub: ['Enzymes', 'Sucs digestifs', 'Simplification'] },
+        { name: 'Absorption', sub: ['Villosités intestinales', 'Passage vers le sang/lymphe'] }
+      ]};
+    if (lessonTitle.includes('respiration')) return {
+      title: lessonTitle, root: 'Respiration', branches: [
+        { name: 'Échanges gazeux', sub: ['Alvéoles pulmonaires', 'Tissus organiques'] },
+        { name: 'Transport', sub: ['Hémoglobine (O2)', 'Plasma (CO2/Nutriments)'] },
+        { name: 'Respiration cellulaire', sub: ['Oxydation du glucose', 'Production d\'énergie', 'Rejet de CO2'] }
+      ]};
+    if (lessonTitle.includes('sang')) return {
+      title: lessonTitle, root: 'Circulation Sanguine', branches: [
+        { name: 'Sang', sub: ['Plasma', 'Globules rouges', 'Globules blancs', 'Plaquettes'] },
+        { name: 'Cœur', sub: ['Pompe cardiaque', 'Oreillettes/Ventricules', 'Révolution cardiaque'] },
+        { name: 'Vaisseaux', sub: ['Artères (Départ)', 'Veines (Retour)', 'Capillaires (Échanges)'] }
+      ]};
+    if (lessonTitle.includes('nerveux')) return {
+      title: lessonTitle, root: 'Système Nerveux', branches: [
+        { name: 'Organes', sub: ['Encéphale', 'Moelle épinière', 'Nerfs'] },
+        { name: 'Sensibilité', sub: ['Organe sensoriel', 'Nerf sensitif', 'Aire sensorielle'] },
+        { name: 'Motricité', sub: ['Aire motrice', 'Nerf moteur', 'Muscle'] },
+        { name: 'Neurone', sub: ['Corps cellulaire', 'Axone', 'Synapse'] }
+      ]};
+    return {
+        title: lessonTitle, root: lessonTitle, branches: [
+            { name: 'Définitions', sub: ['Mots clés', 'Termes scientifiques'] },
+            { name: 'Structures', sub: ['Anatomie', 'Organes'] },
+            { name: 'Fonctions', sub: ['Physiologie', 'Rôles'] },
+            { name: 'Hygiène', sub: ['Prévention', 'Maladies'] }
+        ]
+     };
   }
 
   // Default Generic Map
@@ -282,9 +424,9 @@ const getMindMap = (subjectId: string, lessonTitle: string): MindMapData => {
     title: lessonTitle,
     root: lessonTitle,
     branches: [
-      { name: 'المحور الأول', sub: ['مفهوم أساسي', 'عنصر 1'] },
-      { name: 'المحور الثاني', sub: ['عنصر 2', 'عنصر 3'] },
-      { name: 'المحور الثالث', sub: ['خلاصة', 'استنتاج'] }
+      { name: 'المحور الأول', sub: ['مفهوم أساسي', 'نقطة هامة'] },
+      { name: 'المحور الثاني', sub: ['تحليل', 'مناقشة'] },
+      { name: 'خلاصة', sub: ['استنتاج عام', 'أهمية الموضوع'] }
     ]
   };
 };
@@ -344,7 +486,7 @@ const MindMapsModule: React.FC<MindMapsModuleProps> = ({ language = 'ar' }) => {
       <div className="flex-1 w-full max-w-7xl mx-auto">
         {/* VIEW 1: SUBJECTS GRID */}
         {view === 'SUBJECTS' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {THIRD_YEAR_SUBJECTS.map((subject) => (
               <button 
                 key={subject.id}

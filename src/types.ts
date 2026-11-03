@@ -1,3 +1,4 @@
+
 export type EducationType = 'الثانوي الإعدادي' | 'الثانوي التأهيلي' | '';
 export type CycleType = '1' | '2' | '';
 export type LevelType = '1' | '2' | '3' | 'Jada_Muchtarak' | '1_Bac' | '2_Bac' | '';
@@ -26,9 +27,9 @@ export interface NestedSubjectData {
 export interface LinksData {
   [education: string]: {
     [cycle: string]: {
-      [level: string]: {
-        [subject: string]: NestedSubjectData;
-      };
+      // For High School: [level][branch][subject]
+      // For Middle School: [level][subject]
+      [level: string]: any; 
     };
   };
 }

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Task, Language } from '../../types';
-import { TRANSLATIONS } from '../../constants';
+import { TRANSLATIONS } from '../../translations';
 
 interface PomodoroProps {
     timeLeft: number;

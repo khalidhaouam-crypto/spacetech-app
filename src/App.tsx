@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import WelcomeScreen from './components/WelcomeScreen';
 import TopBar from './components/TopBar';
@@ -13,17 +14,24 @@ import SearchOverlay from './components/SearchOverlay';
 import HolidaysModal from './components/HolidaysModal';
 import DocumentViewer from './components/DocumentViewer';
 import StarryBackground from './components/StarryBackground';
-import { LINKS_DATA, VIDEOS_DATA, HS_LEVELS, HS_BRANCHES, TRANSLATIONS, DATA_TRANSLATIONS, LEVEL_SUBJECTS, SUBJECTS_DATA } from './constants';
+import InfoModal from './components/InfoModal';
+import AIAssistantModal from './components/AIAssistantModal';
+import { LINKS_DATA, VIDEOS_DATA, HS_LEVELS, HS_BRANCHES, LEVEL_SUBJECTS, SUBJECTS_DATA } from './constants';
+import { TRANSLATIONS, DATA_TRANSLATIONS } from './translations';
 import { EducationType, CycleType, LevelType, LinkItem, NestedSubjectData, Language, SubjectInfo } from './types';
 
-// Removed AI_ASSISTANT from types to prevent errors
 type View = 'WELCOME' | 'HOME' | 'BRANCHES' | 'SUBJECTS' | 'OPTIONS' | 'CONTENT' | 'ABOUT' | 'TASKS' | 'NOTES' | 'FLASHCARDS' | 'POMODORO' | 'MINDMAPS' | 'CALCULATOR';
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('WELCOME');
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
+  
+  // Modals state
   const [showHolidays, setShowHolidays] = useState(false);
+  const [infoModalData, setInfoModalData] = useState<{title: string, content: string} | null>(null);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+
   const [language, setLanguage] = useState<Language>('ar');
   const optionsMenuRef = useRef<HTMLDivElement>(null);
 
@@ -204,6 +212,7 @@ const App: React.FC = () => {
     else if (typeKey === t.localExams) dataKey = 'امتحانات محلية + التصحيح';
     else if (typeKey === t.regionalExams) dataKey = 'امتحانات جهوية + التصحيح';
     else if (typeKey === t.nationalExams) dataKey = 'امتحانات وطنية + التصحيح';
+    else if (typeKey === (t as any).mindMapsOption || typeKey === 'خطاطات ذهنية') dataKey = 'خطاطات ذهنية';
 
     setSelectedContentType(typeKey);
 
@@ -211,9 +220,18 @@ const App: React.FC = () => {
     const safeCycle = cycle || '1';
     
     if (education === 'الثانوي الإعدادي') {
-      subjectData = LINKS_DATA['الثانوي الإعدادي']?.[safeCycle]?.[level]?.[selectedSubject] as NestedSubjectData;
+      const msData = LINKS_DATA['الثانوي الإعدادي']?.[safeCycle]?.[level];
+      if (msData) {
+        subjectData = (msData[selectedSubject] || 
+                       (selectedSubject === 'اللغة الفرنسية' ? msData['الفرنسية'] : undefined) ||
+                       (selectedSubject === 'الفرنسية' ? msData['اللغة الفرنسية'] : undefined) ||
+                       (selectedSubject === 'Mathématiques (Fr)' ? msData['Mathématiques'] : undefined) ||
+                       (selectedSubject === 'Physique et Chimie (Fr)' ? msData['Physique et Chimie'] : undefined) ||
+                       (selectedSubject === 'Sciences de la vie et de la Terre (SVT Fr)' ? msData['Sciences de la Vie et de la Terre'] : undefined)) as NestedSubjectData;
+      }
     } else if (education === 'الثانوي التأهيلي') {
-      subjectData = LINKS_DATA['الثانوي التأهيلي']?.[safeCycle]?.[level]?.[selectedSubject] as NestedSubjectData;
+      // Access via branch for High School
+      subjectData = LINKS_DATA['الثانوي التأهيلي']?.[safeCycle]?.[level]?.[branch]?.[selectedSubject] as NestedSubjectData;
     }
     
     if (!subjectData) {
@@ -232,6 +250,9 @@ const App: React.FC = () => {
       setContentList([]);
     } else if (dataKey === 'فروض + التصحيح' && subjectData['فروض + التصحيح']) {
       setNestedContent(subjectData['فروض + التصحيح']);
+      setContentList([]);
+    } else if (dataKey === 'خطاطات ذهنية' && subjectData['خطاطات ذهنية'] && !Array.isArray(subjectData['خطاطات ذهنية'])) {
+      setNestedContent(subjectData['خطاطات ذهنية'] as {[key:string]: LinkItem[]});
       setContentList([]);
     } else {
       const data = (subjectData as any)[dataKey];
@@ -280,7 +301,7 @@ const App: React.FC = () => {
                                className={`block p-4 rounded-xl bg-white dark:bg-[#3d3d3d] border border-gray-100 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:text-primary hover:border-primary transition shadow-sm hover:shadow-md font-semibold flex items-center justify-between group cursor-pointer ${language === 'ar' ? 'text-right' : 'text-left'}`}
                              >
                                 <span>{item.title}</span>
-                                {item.url?.includes('drive') ? <i className="fas fa-file-alt text-green-600"></i> : <i className="fas fa-external-link-alt text-gray-300 group-hover:text-primary transition"></i>}
+                                {(item.url || item.urls?.[0])?.includes('drive') ? <i className="fas fa-file-alt text-green-600"></i> : <i className="fas fa-external-link-alt text-gray-300 group-hover:text-primary transition"></i>}
                              </div>
                         ))
                     ) : (
@@ -298,7 +319,7 @@ const App: React.FC = () => {
            className={`block p-4 mb-3 rounded-xl bg-gradient-to-l from-white to-[#f8f9fa] dark:from-[#3d3d3d] dark:to-[#333] border-r-4 border-primary text-gray-800 dark:text-white hover:translate-x-[-5px] hover:shadow-lg transition-all duration-300 font-bold flex items-center justify-between group cursor-pointer ${language === 'ar' ? 'text-right' : 'text-left'}`}
         >
             <span>{item.title}</span>
-            {item.url?.includes('drive') ? <i className="fas fa-file-alt text-green-600"></i> : <i className="fas fa-chevron-left text-gray-300 group-hover:text-primary transition"></i>}
+            {(item.url || item.urls?.[0])?.includes('drive') ? <i className="fas fa-file-alt text-green-600"></i> : <i className="fas fa-chevron-left text-gray-300 group-hover:text-primary transition"></i>}
         </div>
     ));
   };
@@ -311,6 +332,7 @@ const App: React.FC = () => {
         if (level && LEVEL_SUBJECTS[level] && LEVEL_SUBJECTS[level][branch]) {
             list = LEVEL_SUBJECTS[level][branch];
         } else {
+            // Fallback if specific mapping fails, though should cover all with new constants
             list = SUBJECTS_DATA[branch] || [];
         }
     }
@@ -359,6 +381,14 @@ const App: React.FC = () => {
       />
       
       {showHolidays && <HolidaysModal onClose={() => setShowHolidays(false)} />}
+      
+      {infoModalData && (
+        <InfoModal 
+          title={infoModalData.title} 
+          content={infoModalData.content} 
+          onClose={() => setInfoModalData(null)} 
+        />
+      )}
 
       {viewingDoc && (
         <DocumentViewer 
@@ -377,7 +407,7 @@ const App: React.FC = () => {
                 { name: t.modules.pomodoro, icon: 'fas fa-clock', action: () => setView('POMODORO') },
                 { name: t.modules.mindmaps, icon: 'fas fa-project-diagram', action: () => setView('MINDMAPS') },
                 { name: t.modules.calculator, icon: 'fas fa-calculator', action: () => setView('CALCULATOR') },
-                { name: language === 'ar' ? 'المساعد الذكي' : 'AI Assistant', icon: 'fas fa-user-astronaut', action: () => alert(language === 'ar' ? 'المساعد الذكي قيد التطوير' : 'AI Assistant is under development') },
+                { name: language === 'ar' ? 'المساعد الذكي (الثالثة إعدادي)' : 'Assistant IA (3AC)', icon: 'fas fa-user-astronaut', action: () => setIsAssistantOpen(true) },
             ].map((opt, i) => (
                 <div key={i} onClick={() => { setIsOptionsMenuOpen(false); if(typeof opt.action === 'function') opt.action(); }} className="p-4 flex items-center gap-4 hover:bg-primary/5 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0 transition-all active:scale-95">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -482,6 +512,7 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {/* ... (BRANCHES, SUBJECTS, OPTIONS, CONTENT views remain same) ... */}
         {view === 'BRANCHES' && (
           <div className="animate-fadeIn">
             <h2 className="text-2xl font-black text-center mb-6 text-primary drop-shadow-sm">{t.selectBranch}</h2>
@@ -490,7 +521,7 @@ const App: React.FC = () => {
                 <button 
                   key={idx}
                   onClick={() => selectBranch(b)}
-                  className={`p-5 rounded-2xl bg-white dark:bg-[#2d2d2d] border border-gray-100 dark:border-gray-700 shadow-md hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 font-bold text-lg flex items-center justify-between group ${language === 'ar' ? 'text-right' : 'text-left'}`}
+                  className={`p-5 rounded-2xl bg-white dark:bg-[#2d2d2d] border border-gray-100 dark:border-gray-700 shadow-md hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 dark:active:border-primary transition-all duration-300 font-bold text-lg flex items-center justify-between group ${language === 'ar' ? 'text-right' : 'text-left'}`}
                 >
                   <span className="text-gray-800 dark:text-white group-hover:text-primary transition">{getBranchName(b)}</span>
                   <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-[#3d3d3d] flex items-center justify-center group-hover:bg-primary group-hover:text-white transition">
@@ -513,7 +544,7 @@ const App: React.FC = () => {
                     <div 
                       key={idx} 
                       onClick={() => selectSubject(sub.name)}
-                      className="group relative overflow-hidden p-5 rounded-2xl text-white font-bold text-lg flex items-center gap-4 cursor-pointer shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                      className="group relative overflow-hidden p-5 rounded-2xl text-white font-bold text-lg flex items-center gap-4 cursor-pointer shadow-lg hover:shadow-2xl hover:-translate-y-1 border-2 border-transparent dark:active:border-primary transition-all duration-300"
                       style={{ background: `linear-gradient(135deg, ${sub.color}, ${adjustColor(sub.color, -20)})` }}
                     >
                        <div className="absolute top-0 left-0 w-20 h-20 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-2xl"></div>
@@ -540,7 +571,7 @@ const App: React.FC = () => {
                         { title: t.exams, icon: 'fas fa-file-signature', desc: t.descExams },
                         { title: t.videos, icon: 'fas fa-play-circle', desc: t.descVideos }
                     ].map(opt => (
-                        <button key={opt.title} onClick={() => selectOption(opt.title)} className={`group p-5 rounded-2xl bg-white dark:bg-[#2d2d2d] border border-gray-100 dark:border-gray-700 shadow-md hover:border-primary hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-center gap-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                        <button key={opt.title} onClick={() => selectOption(opt.title)} className={`group p-5 rounded-2xl bg-white dark:bg-[#2d2d2d] border border-gray-100 dark:border-gray-700 shadow-md hover:border-primary hover:shadow-xl hover:-translate-y-1 dark:active:border-primary transition-all duration-300 flex items-center gap-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
                             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                                 <i className={`${opt.icon} text-xl`}></i>
                             </div>
@@ -552,8 +583,33 @@ const App: React.FC = () => {
                         </button>
                     ))}
                     
+                    {/* Mind maps if present for current subject */}
+                    {(() => {
+                      const safeCycle = cycle || '1';
+                      const msData = education === 'الثانوي الإعدادي' ? LINKS_DATA['الثانوي الإعدادي']?.[safeCycle]?.[level] : null;
+                      const subData = msData ? (msData[selectedSubject] || msData['الفرنسية'] || msData['Mathématiques']) : null;
+                      const mindMapsData = subData?.['خطاطات ذهنية'];
+                      const hasMindMaps = Array.isArray(mindMapsData) ? mindMapsData.length > 0 : !!mindMapsData;
+                      if (!hasMindMaps) return null;
+                      return (
+                        <button 
+                          onClick={() => selectOption((t as any).mindMapsOption || 'خطاطات ذهنية')} 
+                          className={`group p-5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center gap-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}
+                        >
+                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-sm">
+                                <i className="fas fa-project-diagram text-xl"></i>
+                            </div>
+                            <div className="flex-1">
+                                <div className="font-bold text-lg text-white">{(t as any).mindMapsOption || 'خطاطات ذهنية'}</div>
+                                <div className="text-xs text-white/80 font-normal mt-1">{(t as any).descMindMaps || 'خرائط ذهنية وتبسيط للمفاهيم'}</div>
+                            </div>
+                            <i className={`fas fa-chevron-${language === 'ar' ? 'left' : 'right'} text-white/60 group-hover:text-white transition`}></i>
+                        </button>
+                      );
+                    })()}
+
                     {level === '3' && education === 'الثانوي الإعدادي' && (
-                        <button onClick={() => selectOption(cycle === '1' ? t.localExams : t.regionalExams)} className={`group p-5 rounded-2xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg hover:shadow-orange-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center gap-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                        <button onClick={() => selectOption(cycle === '1' ? t.localExams : t.regionalExams)} className={`group p-5 rounded-2xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg hover:shadow-orange-500/40 hover:-translate-y-1 border-2 border-transparent dark:active:border-primary transition-all duration-300 flex items-center gap-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
                             <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-sm">
                                 <i className="fas fa-award text-xl"></i>
                             </div>
@@ -563,8 +619,19 @@ const App: React.FC = () => {
                         </button>
                     )}
 
+                    {(level === '1_Bac') && (
+                        <button onClick={() => selectOption(t.regionalExams)} className={`group p-5 rounded-2xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg hover:shadow-orange-500/40 hover:-translate-y-1 border-2 border-transparent dark:active:border-primary transition-all duration-300 flex items-center gap-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-sm">
+                                <i className="fas fa-map-marked-alt text-xl"></i>
+                            </div>
+                            <div className="flex-1 font-bold text-lg">
+                                {t.regionalExams}
+                            </div>
+                        </button>
+                    )}
+
                     {(level === '2_Bac') && (
-                        <button onClick={() => selectOption(t.nationalExams)} className={`group p-5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:shadow-green-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center gap-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                        <button onClick={() => selectOption(t.nationalExams)} className={`group p-5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:shadow-green-500/40 hover:-translate-y-1 border-2 border-transparent dark:active:border-primary transition-all duration-300 flex items-center gap-4 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
                             <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-sm">
                                 <i className="fas fa-graduation-cap text-xl"></i>
                             </div>
@@ -610,11 +677,13 @@ const App: React.FC = () => {
         {view === 'CALCULATOR' && <GradeCalculatorModule language={language} />}
 
         {view === 'ABOUT' && (
-             <div className="animate-fadeIn space-y-8">
+             <div className="animate-fadeIn space-y-8 pb-10">
                 <div className="text-center">
                    <h2 className="text-3xl font-black text-primary mb-2">{t.aboutTitle}</h2>
-                   <p className="text-gray-500 font-medium">Build for students, by students.</p>
+                   <p className="text-gray-500 font-medium">Built for students, by students.</p>
                 </div>
+                
+                {/* Description Card */}
                 <div className="bg-white dark:bg-[#2d2d2d] p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 relative overflow-hidden">
                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
                       {language === 'ar' ? 'قصتنا' : language === 'fr' ? 'Notre Histoire' : 'Our Story'}
@@ -623,7 +692,9 @@ const App: React.FC = () => {
                       {t.aboutText}
                    </p>
                 </div>
-                <div className="grid grid-cols-4 gap-4">
+
+                {/* Statistics Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                    {[
                       { val: '10k+', label: language === 'ar' ? 'مستخدم نشط' : 'Active Users', icon: 'fas fa-users', color: 'text-indigo-500' },
                       { val: '500+', label: language === 'ar' ? 'درس وتمرين' : 'Resources', icon: 'fas fa-book-open', color: 'text-emerald-500' },
@@ -637,6 +708,65 @@ const App: React.FC = () => {
                       </div>
                    ))}
                 </div>
+
+                {/* Roadmap Section */}
+                <div className="bg-white dark:bg-[#2d2d2d] rounded-3xl p-8 shadow-xl border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+                    <h3 className="text-2xl font-black text-center mb-8 text-primary flex items-center justify-center gap-2">
+                        <i className="fas fa-map-signs"></i>
+                        {t.roadmapTitle}
+                    </h3>
+                    
+                    <div className="relative">
+                        {/* Vertical Line */}
+                        <div className={`absolute top-0 bottom-0 ${language === 'ar' ? 'right-6 md:right-1/2' : 'left-6 md:left-1/2'} w-1 bg-gray-200 dark:bg-gray-700 transform ${language === 'ar' ? 'translate-x-1/2' : '-translate-x-1/2'}`}></div>
+
+                        <div className="space-y-8 relative">
+                            {t.roadmapSteps?.map((step: any, idx: number) => {
+                                const isRight = idx % 2 === 0;
+                                return (
+                                    <div key={idx} className={`flex items-center gap-8 ${language === 'ar' ? (isRight ? 'md:flex-row-reverse' : 'md:flex-row') : (isRight ? 'md:flex-row' : 'md:flex-row-reverse')}`}>
+                                        
+                                        {/* Content Box */}
+                                        <div className="flex-1 hidden md:block"></div>
+                                        
+                                        {/* Icon/Dot */}
+                                        <div className="relative z-10 flex-shrink-0 w-12 h-12 rounded-full border-4 border-white dark:border-[#2d2d2d] shadow-lg flex items-center justify-center"
+                                             style={{ backgroundColor: step.status === 'done' ? '#2ecc71' : step.status === 'in_progress' ? '#f1c40f' : '#e0e0e0' }}
+                                        >
+                                            {step.status === 'done' ? <i className="fas fa-check text-white"></i> : 
+                                             step.status === 'in_progress' ? <i className="fas fa-sync fa-spin text-white"></i> :
+                                             <i className="fas fa-circle text-gray-400 text-[10px]"></i>}
+                                        </div>
+
+                                        {/* Content Box (Mobile & Desktop) */}
+                                        <div className="flex-1 bg-gray-50 dark:bg-[#333] p-4 rounded-xl border border-gray-100 dark:border-gray-600 shadow-sm hover:shadow-md transition-all">
+                                            <div className="text-xs font-bold text-gray-400 mb-1 uppercase tracking-wide">{step.phase}</div>
+                                            <h4 className="font-bold text-gray-800 dark:text-white mb-1">{step.title}</h4>
+                                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-snug">{step.desc}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Legal & Extra Buttons */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button onClick={() => setInfoModalData({ title: t.privacyBtn, content: t.privacyContent })} className="p-4 bg-white dark:bg-[#2d2d2d] rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-300 hover:text-primary hover:border-primary dark:active:border-primary transition flex items-center justify-center gap-2">
+                        <i className="fas fa-user-shield"></i>
+                        {t.privacyBtn}
+                    </button>
+                    <button onClick={() => setInfoModalData({ title: t.termsBtn, content: t.termsContent })} className="p-4 bg-white dark:bg-[#2d2d2d] rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-300 hover:text-primary hover:border-primary dark:active:border-primary transition flex items-center justify-center gap-2">
+                        <i className="fas fa-file-contract"></i>
+                        {t.termsBtn}
+                    </button>
+                    <button onClick={() => setShowHolidays(true)} className="p-4 bg-white dark:bg-[#2d2d2d] rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-300 hover:text-primary hover:border-primary dark:active:border-primary transition flex items-center justify-center gap-2">
+                        <i className="fas fa-calendar-alt"></i>
+                        {t.holidaysBtn}
+                    </button>
+                </div>
+
                 <button onClick={() => setView('HOME')} className="w-full py-3 border-2 border-primary bg-white text-primary rounded-xl font-bold hover:bg-primary hover:text-white transition shadow-lg">{t.backBtn}</button>
              </div>
         )}
@@ -647,15 +777,24 @@ const App: React.FC = () => {
         SPACETECH &copy; 2025 - {t.footerRights}
       </footer>
       
-      {['HOME', 'BRANCHES', 'SUBJECTS', 'OPTIONS'].includes(view) && (
-         <button
-            onClick={() => alert(language === 'ar' ? 'المساعد الذكي قيد التطوير' : 'AI Assistant is under development')}
-            className={`fixed bottom-6 ${language === 'ar' ? 'left-6' : 'right-6'} z-[8000] w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-accent text-white shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 border-4 border-white dark:border-[#2d2d2d] group`}
-            title={language === 'ar' ? "المساعد الذكي" : "AI Assistant"}
-         >
-            <i className="fas fa-user-astronaut text-2xl group-hover:rotate-12 transition-transform"></i>
-         </button>
-      )}
+      {/* AIAssistantModal for 3AC (Controlled strictly by X button, persistent against outside clicks and popstate) */}
+      <AIAssistantModal 
+        isOpen={isAssistantOpen} 
+        onClose={() => setIsAssistantOpen(false)} 
+        language={language} 
+      />
+
+      <button
+        onClick={() => setIsAssistantOpen(true)}
+        className="fixed bottom-6 left-6 z-[8000] w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-accent text-white shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 border-4 border-white dark:border-[#2d2d2d] group cursor-pointer"
+        title={language === 'ar' ? "المساعد الذكي (الثالثة إعدادي)" : "Assistant IA (3AC)"}
+      >
+        <i className="fas fa-user-astronaut text-2xl group-hover:rotate-12 transition-transform text-yellow-300"></i>
+        {/* 3AC Badge retained */}
+        <span className="absolute -top-1.5 -right-1 bg-yellow-400 text-purple-950 font-black text-[9px] px-1.5 py-0.5 rounded-full shadow-md animate-bounce">
+          3AC
+        </span>
+      </button>
 
     </div>
   );

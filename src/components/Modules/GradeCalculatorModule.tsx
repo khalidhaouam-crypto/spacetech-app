@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Language } from '../../types';
-import { TRANSLATIONS, DATA_TRANSLATIONS } from '../../constants';
+import { TRANSLATIONS, DATA_TRANSLATIONS } from '../../translations';
 
 interface SubjectMark {
   id: number;

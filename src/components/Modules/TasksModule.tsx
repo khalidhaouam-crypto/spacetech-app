@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Task, Priority, TaskCategory, Language } from '../../types';
-import { TRANSLATIONS } from '../../constants';
+import { TRANSLATIONS } from '../../translations';
 
 const PRIORITY_MAP: { [key in Priority]: { label: { ar: string, fr: string, en: string }, color: string, bg: string } } = {
   'High': { label: { ar: 'مهم جداً', fr: 'Urgent', en: 'Urgent' }, color: 'text-red-600', bg: 'bg-red-100' },
