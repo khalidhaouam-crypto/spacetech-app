@@ -56,7 +56,8 @@ export const TRANSLATIONS = {
       flashcards: " مراجعة البطاقات",
       pomodoro: "Pomodoro" ,
       mindmaps: "الخطاطات الذهنية",
-      calculator: "حاسبة المعدل"
+      calculator: "حاسبة المعدل",
+      languages: "تعلم اللغات"
     },
     roadmapSteps: [
         { phase: "المرحلة 1", title: "الإطلاق الرسمي", status: "done", desc: "إطلاق منصة SPACETECH مع المواد الأساسية لجميع المستويات." },
@@ -198,7 +199,8 @@ export const TRANSLATIONS = {
       flashcards: "Cartes Mémoire",
       pomodoro: "Pomodoro",
       mindmaps: "Cartes Mentales",
-      calculator: "Calculateur de Moyenne"
+      calculator: "Calculateur de Moyenne",
+      languages: "Apprendre les Langues"
     },
     roadmapSteps: [
         { phase: "Phase 1", title: "Lancement Officiel", status: "done", desc: "Lancement de la plateforme SPACETECH avec le contenu de base." },
@@ -340,7 +342,8 @@ export const TRANSLATIONS = {
       flashcards: "Flashcards Review",
       pomodoro: "Pomodoro",
       mindmaps: "Mind Maps",
-      calculator: "Grade Calculator"
+      calculator: "Grade Calculator",
+      languages: "Learn Languages"
     },
     roadmapSteps: [
         { phase: "Phase 1", title: "Official Launch", status: "done", desc: "SPACETECH platform launch with core content." },

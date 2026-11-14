@@ -10,6 +10,7 @@ import FlashcardsModule from './components/Modules/FlashcardsModule';
 import PomodoroModule from './components/Modules/PomodoroModule';
 import MindMapsModule from './components/Modules/MindMapsModule';
 import GradeCalculatorModule from './components/Modules/GradeCalculatorModule';
+import LanguageLearningModule from './components/Modules/LanguageLearningModule';
 import SearchOverlay from './components/SearchOverlay';
 import HolidaysModal from './components/HolidaysModal';
 import DocumentViewer from './components/DocumentViewer';
@@ -20,7 +21,7 @@ import { LINKS_DATA, VIDEOS_DATA, HS_LEVELS, HS_BRANCHES, LEVEL_SUBJECTS, SUBJEC
 import { TRANSLATIONS, DATA_TRANSLATIONS } from './translations';
 import { EducationType, CycleType, LevelType, LinkItem, NestedSubjectData, Language, SubjectInfo } from './types';
 
-type View = 'WELCOME' | 'HOME' | 'BRANCHES' | 'SUBJECTS' | 'OPTIONS' | 'CONTENT' | 'ABOUT' | 'TASKS' | 'NOTES' | 'FLASHCARDS' | 'POMODORO' | 'MINDMAPS' | 'CALCULATOR';
+type View = 'WELCOME' | 'HOME' | 'BRANCHES' | 'SUBJECTS' | 'OPTIONS' | 'CONTENT' | 'ABOUT' | 'TASKS' | 'NOTES' | 'FLASHCARDS' | 'POMODORO' | 'MINDMAPS' | 'CALCULATOR' | 'LANGUAGES';
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('WELCOME');
@@ -354,7 +355,7 @@ const App: React.FC = () => {
 
   if (view === 'WELCOME') return <WelcomeScreen onComplete={() => setView('HOME')} />;
 
-  const isWideView = ['MINDMAPS', 'CALCULATOR', 'TASKS', 'NOTES', 'FLASHCARDS', 'POMODORO'].includes(view);
+  const isWideView = ['MINDMAPS', 'CALCULATOR', 'TASKS', 'NOTES', 'FLASHCARDS', 'POMODORO', 'LANGUAGES'].includes(view);
   const containerPaddingTop = "pt-[130px]";
   const optionsMenuPosition = language === 'ar' ? 'left-4' : 'right-4';
 
@@ -407,6 +408,7 @@ const App: React.FC = () => {
                 { name: t.modules.pomodoro, icon: 'fas fa-clock', action: () => setView('POMODORO') },
                 { name: t.modules.mindmaps, icon: 'fas fa-project-diagram', action: () => setView('MINDMAPS') },
                 { name: t.modules.calculator, icon: 'fas fa-calculator', action: () => setView('CALCULATOR') },
+                { name: t.modules.languages, icon: 'fas fa-language', action: () => setView('LANGUAGES') },
                 { name: language === 'ar' ? 'المساعد الذكي (الثالثة إعدادي)' : 'Assistant IA (3AC)', icon: 'fas fa-user-astronaut', action: () => setIsAssistantOpen(true) },
             ].map((opt, i) => (
                 <div key={i} onClick={() => { setIsOptionsMenuOpen(false); if(typeof opt.action === 'function') opt.action(); }} className="p-4 flex items-center gap-4 hover:bg-primary/5 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0 transition-all active:scale-95">
@@ -675,6 +677,7 @@ const App: React.FC = () => {
         )}
         {view === 'MINDMAPS' && <MindMapsModule language={language} />}
         {view === 'CALCULATOR' && <GradeCalculatorModule language={language} />}
+        {view === 'LANGUAGES' && <LanguageLearningModule language={language} />}
 
         {view === 'ABOUT' && (
              <div className="animate-fadeIn space-y-8 pb-10">
